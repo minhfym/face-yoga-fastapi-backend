@@ -13,9 +13,9 @@ passlib[bcrypt]==1.7.4
 # File handling
 python-multipart==0.0.6
 
-# ML/Computer Vision (Railway optimized)
+# ML/Computer Vision (Railway compatible versions)
 opencv-python-headless==4.8.1.78
-mediapipe==0.10.7
+mediapipe==0.10.21
 numpy==1.24.3
 scikit-image==0.21.0
 
