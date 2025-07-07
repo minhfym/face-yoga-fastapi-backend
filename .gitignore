@@ -21,18 +21,17 @@ wheels/
 *.egg
 MANIFEST
 
-# Environment variables
-.env
-.env.local
-.env.production
-.env.staging
-
-# Virtual environment
+# Virtual environments
 venv/
 env/
 ENV/
 env.bak/
 venv.bak/
+
+# Environment variables
+.env
+.env.local
+.env.production
 
 # IDE
 .vscode/
@@ -58,6 +57,5 @@ logs/
 *.db
 *.sqlite3
 
-# Temporary files
-tmp/
-temp/
+# Google Cloud
+.gcloudignore

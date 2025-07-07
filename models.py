@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, JSON, Boolean
-from sqlalchemy.relationship import relationship
-from sqlalchemy.sql import func
-from database import Base
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, JSON
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from datetime import datetime
+
+Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
@@ -10,8 +12,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
     clients = relationship("Client", back_populates="user")
@@ -25,9 +26,7 @@ class Client(Base):
     email = Column(String, nullable=True)
     phone = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Foreign key
+    created_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
     # Relationships
@@ -38,14 +37,12 @@ class Analysis(Base):
     __tablename__ = "analyses"
     
     id = Column(Integer, primary_key=True, index=True)
-    analysis_type = Column(String, nullable=False)  # "single" or "comparison"
-    landmarks_detected = Column(Integer, default=0)
-    results = Column(JSON, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Foreign keys
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    analysis_type = Column(String, nullable=False)  # "single" or "comparison"
+    results = Column(JSON, nullable=False)
+    landmarks_detected = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
     user = relationship("User", back_populates="analyses")

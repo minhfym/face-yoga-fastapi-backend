@@ -32,7 +32,7 @@ except Exception as e:
 # Initialize FastAPI app
 app = FastAPI(
     title="Face Yoga Analysis API",
-    description="Railway-optimized ML facial analysis for face yoga practitioners",
+    description="Advanced ML-powered facial analysis using MediaPipe and OpenCV",
     version="1.0.0"
 )
 
@@ -52,20 +52,33 @@ security = HTTPBearer()
 # Initialize ML analyzer
 try:
     ml_analyzer = get_analyzer()
-    ML_ANALYZER_STATUS = ml_analyzer.is_ready()
+    ML_ANALYZER_STATUS = ml_analyzer.is_initialized()
     logger.info(f"✅ ML Analyzer status: {ML_ANALYZER_STATUS}")
 except Exception as e:
     logger.error(f"❌ Failed to initialize ML analyzer: {e}")
     ML_ANALYZER_STATUS = False
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize ML models on startup"""
+    try:
+        if not ML_ANALYZER_STATUS:
+            await ml_analyzer.initialize()
+        logger.info("🚀 Face Yoga Analysis API started successfully!")
+        logger.info("📊 MediaPipe and OpenCV models loaded")
+    except Exception as e:
+        logger.error(f"❌ Error initializing ML models: {e}")
+
 @app.get("/")
 async def root():
     """Root endpoint."""
     return {
-        "message": "Face Yoga Analysis API - Railway Optimized",
-        "platform": "Railway",
+        "message": "Face Yoga Analysis API - Google Cloud Run",
+        "platform": "Google Cloud Run",
         "ml_analyzer": ML_ANALYZER_STATUS,
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "status": "running",
+        "features": ["MediaPipe 468 landmarks", "OpenCV analysis", "Real ML processing"]
     }
 
 @app.get("/health")
@@ -85,7 +98,9 @@ async def health_check():
         "status": "healthy",
         "database": db_status,
         "ml_analyzer": ML_ANALYZER_STATUS,
-        "platform": "Railway"
+        "platform": "Google Cloud Run",
+        "mediapipe": "enabled",
+        "opencv": "enabled"
     }
 
 # Authentication endpoints
@@ -264,12 +279,12 @@ async def upload_and_analyze(
         if after_image:
             # Compare before and after images
             after_data = await after_image.read()
-            analysis_result = ml_analyzer.compare_images(before_data, after_data)
+            analysis_result = await ml_analyzer.analyze_images(before_data, after_data)
         else:
             # Analyze single image
-            analysis_result = ml_analyzer.analyze_single_image(before_data)
+            analysis_result = await ml_analyzer.analyze_single_image(before_data)
         
-        if not analysis_result.get("success", False):
+        if not analysis_result.get("success", True):
             raise HTTPException(
                 status_code=400, 
                 detail=f"Analysis failed: {analysis_result.get('error', 'Unknown error')}"
@@ -281,7 +296,7 @@ async def upload_and_analyze(
             client_id=client_id,
             analysis_type="comparison" if after_image else "single",
             results=analysis_result,
-            landmarks_detected=analysis_result.get("landmarks_detected", 0)
+            landmarks_detected=analysis_result.get("landmarks_count", 0)
         )
         
         db.add(new_analysis)
@@ -292,7 +307,7 @@ async def upload_and_analyze(
             "success": True,
             "analysis_id": new_analysis.id,
             "analysis_type": new_analysis.analysis_type,
-            "landmarks_detected": analysis_result.get("landmarks_detected", 0),
+            "landmarks_detected": analysis_result.get("landmarks_count", 0),
             "results": analysis_result
         }
         

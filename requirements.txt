@@ -13,18 +13,15 @@ passlib[bcrypt]==1.7.4
 # File handling
 python-multipart==0.0.6
 
-# ML/Computer Vision - Railway compatible versions
-opencv-python-headless==4.8.0.76
+# ML/Computer Vision - REAL VERSIONS
+opencv-python-headless==4.8.1.78
 mediapipe==0.10.14
 numpy==1.24.3
 scikit-image==0.21.0
 
 # Image processing
-Pillow==10.0.1
+Pillow==10.1.0
 
 # Utilities
 python-dotenv==1.0.0
-pydantic==2.4.2
-
-# Additional dependencies for MediaPipe
-protobuf==3.20.3
+pydantic==2.5.0

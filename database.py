@@ -2,25 +2,27 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
-import logging
+from dotenv import load_dotenv
 
-logger = logging.getLogger(__name__)
+load_dotenv()
 
-# Get database URL from environment
+# Database URL from environment variable
 NEON_DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    # Fallback for local development
-    DATABASE_URL = "postgresql://user:password@localhost/faceYoga"
-    logger.warning("Using fallback DATABASE_URL for local development")
+    raise ValueError("DATABASE_URL environment variable is required")
+
+# Handle PostgreSQL URL format for SQLAlchemy
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Create engine
-try:
-    engine = create_engine(DATABASE_URL)
-    logger.info("✅ Database engine created successfully")
-except Exception as e:
-    logger.error(f"❌ Failed to create database engine: {e}")
-    raise
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    echo=False
+)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -29,7 +31,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
-    """Get database session."""
+    """Get database session"""
     db = SessionLocal()
     try:
         yield db
