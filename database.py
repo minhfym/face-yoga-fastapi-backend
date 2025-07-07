@@ -2,32 +2,34 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
-from dotenv import load_dotenv
+import logging
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
-# Railway provides NEON_DATABASE_URL automatically
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Get database URL from environment
+NEON_DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     # Fallback for local development
-    DATABASE_URL = "postgresql://user:password@localhost/face_yoga_db"
+    DATABASE_URL = "postgresql://user:password@localhost/faceYoga"
+    logger.warning("Using fallback DATABASE_URL for local development")
 
-# Handle Railway's postgres:// vs postgresql:// URL format
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+# Create engine
+try:
+    engine = create_engine(DATABASE_URL)
+    logger.info("✅ Database engine created successfully")
+except Exception as e:
+    logger.error(f"❌ Failed to create database engine: {e}")
+    raise
 
-# Create SQLAlchemy engine
-engine = create_engine(DATABASE_URL)
-
-# Create SessionLocal class
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create Base class
+# Create base class for models
 Base = declarative_base()
 
-# Dependency to get database session
 def get_db():
+    """Get database session."""
     db = SessionLocal()
     try:
         yield db
